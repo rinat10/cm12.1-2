@@ -1,0 +1,21 @@
+image: ubuntu:xenial
+before_script:
+- apt-get update -qyy
+- apt-get install -qyy curl bc make git build-essential
+- apt-get --yes install libglib2.0-dev curl flex g++-multilib gcc-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev libesd0-dev libncurses5-dev libsdl1.2-dev libwxgtk-media3.0-dev libxml2 libxml2-utils lzop pngcrush schedtool squashfs-tools xsltproc zip zlib1g-dev
+
+building:
+script:
+- git clone https://github.com/Chr…x-gnueabihf-linaro_4.9 #ссылка на гит вашего тулчейна, в моем случае arm-cortex_a7
+- export PATH=$PATH:$PWD/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/ #путь до папки с тулчейном
+- arm-cortex_a7-linux-gnueabihf-gcc --version # название тулчейна
+- export KBUILD_BUILD_USER=user #это правите по вкусу, можно вписать ник
+- export KBUILD_BUILD_HOST=4pda
+- export ARCH=arm #архитектура вашего ядра
+- export CROSS_COMPILE=$PWD/arm-cortex_a7-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a7-linux-gnueabihf- #путь до папки с тулчейном и исполняемыми файлами
+- make -j2 defconfig_defconfig #название вашего defconfig в папке arch/%архитектура%/configs
+- make -j2 1>builds.log 2>errors.log 
+after_script:
+- curl --upload-file builds.log https://transfer.sh/builds.log |grep transfer
+- curl --upload-file errors.log https://transfer.sh/errors.log |grep transfer
+- curl --upload-file arch/arm/boot/zImage-dtb https://transfer.sh/zImage-dtb |grep transfer
